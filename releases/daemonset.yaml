@@ -1,0 +1,36 @@
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  name: infiniband-setup
+  namespace: kube-system
+spec:
+  selector:
+    matchLabels:
+      name: infiniband-setup
+  template:
+    metadata:
+      labels:
+        name: infiniband-setup
+    spec:
+      containers:
+        - name: enable-pkey
+          image: vultrgpupublic/enable-pkey:latest
+          imagePullPolicy: Always
+          securityContext:
+            privileged: true
+          volumeMounts:
+            - name: sys-class-net
+              mountPath: /sys/class/net
+            - name: sleep-bin
+              mountPath: /usr/bin/sleep
+      nodeSelector:
+        vultr.com/baremetal: true
+        nvidia.com/gpu.family: hopper
+      volumes:
+        - name: sys-class-net
+          hostPath:
+            path: /sys/class/net
+        - name: sleep-bin
+          hostPath:
+            path: /usr/bin/sleep
+      restartPolicy: OnFailure
